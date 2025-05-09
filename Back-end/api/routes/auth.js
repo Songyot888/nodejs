@@ -65,11 +65,11 @@ router.post('/login', (req, res) => {
 });
 
 router.post('/changepwd', async (req,res)=>{
-    let { email, password, newpassword } = req.body;
+    const { email, password, newpassword } = req.body;
 
-    let newwd = await bcrypt.hash(newpassword, 10);
+    const newwd = await bcrypt.hash(newpassword, 10);
 
-    let sql = 'SELECT * FROM customer WHERE email = ?';
+    const sql = 'SELECT * FROM customer WHERE email = ?';
 
         sql = mysql.format(sql, [email])
     connpool.query(sql,(error,results)=>{

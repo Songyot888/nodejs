@@ -11,4 +11,5 @@ app.use('/',indexRoute)
 app.use('/auth',authRoute)
 app.use('/shop', shopRoute);
 
+
 module.exports = app;
