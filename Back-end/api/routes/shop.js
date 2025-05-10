@@ -150,19 +150,20 @@ router.post("/addProduct", (req, res) => {
 router.post('/viewCart',(req,res)=>{
     let {customer_id} = req.body;
     let sql = 
-    'SELECT ' +
-    'c.cart_id, ' +
-    'c.cart_name, ' +
-    'p.product_id, ' +
-    'p.product_name, ' +
-    'p.price, ' +
-    'ci.quantity, ' +
-    '(p.price * ci.quantity) AS total_price ' +
-    'FROM cart c ' +
-    'JOIN cart_item ci ON c.cart_id = ci.cart_id ' +
-    'JOIN product p ON ci.product_id = p.product_id ' +
-    'WHERE c.customer_id = ? ' +
-    'ORDER BY c.cart_id';
+        'SELECT ' +
+        'c.cart_id, ' +
+        'c.cart_name, ' +
+        'p.product_id, ' +
+        'p.product_name, ' +
+        'p.price, ' +
+        'ci.quantity, ' +
+        '(p.price * ci.quantity) AS total_price ' +
+        'FROM cart c ' +
+        'LEFT JOIN cart_item ci ON c.cart_id = ci.cart_id ' +
+        'LEFT JOIN product p ON ci.product_id = p.product_id ' +
+        'WHERE c.customer_id = ? ' +
+        'ORDER BY c.cart_id';
+
 
     sql = mysql.format(sql, [customer_id]);
 
@@ -172,20 +173,26 @@ router.post('/viewCart',(req,res)=>{
             res.status(500).json({ error: 'Database query failed' });
         }
 
-        let groupCart = {}
-        results.forEach(row =>{
-            if (!groupCart[row.cart_id]) {
-                groupCart[row.cart_id] = [];
-            }
-            groupCart[row.cart_id].push({
-                product_id: row.product_id,
-                product_name: row.product_name,
-                price: row.price,
-                quantity: row.quantity,
-                total_price: row.total_price
-            });
-        })
-        res.json(groupCart)
+        let groupedCarts = {};
+        results.forEach(row => {
+          if (!groupedCarts[row.cart_id]) {
+              groupedCarts[row.cart_id] = {
+                  cart_id: row.cart_id,
+                  cart_name: row.cart_name,
+                  items: []
+              };
+          }
+          if (row.product_id) {
+              groupedCarts[row.cart_id].items.push({
+                  product_id: row.product_id,
+                  product_name: row.product_name,
+                  price: row.price,
+                  quantity: row.quantity,
+                  total_price: row.total_price
+              });
+          }
+      });
+      res.json(Object.values(groupedCarts));
     })
     
 });
